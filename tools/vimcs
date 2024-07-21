@@ -1,0 +1,136 @@
+#!/bin/python3
+import argparse
+from rich.console import Console
+from rich.table import Table
+
+def print_table(topic=None, help=False):
+    console = Console()
+
+    # Creating the table
+    table = Table(title="Vim Practical Cheat Sheet for Programming")
+
+    # Adding columns
+    table.add_column("Category", style="bold magenta")
+    table.add_column("Command", style="cyan")
+    table.add_column("Description", style="green")
+
+    # Data for each section
+    sections = {
+        "edit": [
+            ("Editing", "i", "Insert mode"),
+            ("Editing", "a", "Append after cursor"),
+            ("Editing", "o", "Open a new line below the current line"),
+            ("Editing", "O", "Open a new line above the current line"),
+            ("Editing", "x", "Delete the character under the cursor"),
+            ("Editing", "dw", "Delete from cursor to the start of the next word"),
+            ("Editing", "dd", "Delete the current line"),
+            ("Editing", "u", "Undo last change"),
+            ("Editing", "Ctrl + r", "Redo last undone change"),
+        ],
+        "text": [
+            ("Text Objects", "diw", "Delete inner word"),
+            ("Text Objects", "ciw", "Change inner word"),
+            ("Text Objects", "yaw", "Yank a word"),
+            ("Text Objects", "yiw", "Yank inner word"),
+            ("Text Objects", "das", "Delete a sentence"),
+            ("Text Objects", "yis", "Yank inner sentence"),
+        ],
+        "code": [
+            ("Code Navigation", "gd", "Go to local declaration"),
+            ("Code Navigation", "gD", "Go to global declaration"),
+            ("Code Navigation", "%", "Move to matching parenthesis or bracket"),
+            ("Code Navigation", "[m", "Previous method"),
+            ("Code Navigation", "]m", "Next method"),
+            ("Code Navigation", "[[", "Previous function/block"),
+            ("Code Navigation", "]]", "Next function/block"),
+            ("Code Navigation", "*", "Search for the word under the cursor"),
+            ("Code Navigation", "#", "Search backward for the word under the cursor"),
+            ("Code Navigation", "$", "Move to the end of the line"),
+        ],
+        "copy": [
+            ("Copy and Paste", "yy", "Yank (copy) the current line"),
+            ("Copy and Paste", "yw", "Yank (copy) from cursor to the start of the next word"),
+            ("Copy and Paste", "p", "Paste after the cursor"),
+            ("Copy and Paste", "P", "Paste before the cursor"),
+        ],
+        "indent": [
+            ("Indentation", ">>", "Indent the current line"),
+            ("Indentation", "<<", "Unindent the current line"),
+            ("Indentation", ">", "Indent the selected lines in visual mode"),
+            ("Indentation", "<", "Unindent the selected lines in visual mode"),
+        ],
+        "search": [
+            ("Search and Replace", "/pattern", "Search for pattern"),
+            ("Search and Replace", "?pattern", "Search backward for pattern"),
+            ("Search and Replace", "n", "Repeat search in the same direction"),
+            ("Search and Replace", "N", "Repeat search in the opposite direction"),
+            ("Search and Replace", ":%s/old/new/g", "Replace all occurrences of old with new in the file (add 'c' to confirm each replace)"),
+        ],
+        "vmode": [
+            ("Visual Mode", "v", "Start visual mode"),
+            ("Visual Mode", "V", "Start linewise visual mode"),
+            ("Visual Mode", "Ctrl + v", "Start blockwise visual mode"),
+            ("Visual Mode", "y", "Yank (copy) the selected text"),
+            ("Visual Mode", "d", "Delete the selected text"),
+            ("Visual Mode", "~", "Toggle case for the selected text"),
+        ],
+        "macro": [
+            ("Macros", "qa", "Start recording macro into register a"),
+            ("Macros", "q", "Stop recording macro"),
+            ("Macros", "@a", "Play back macro from register a"),
+            ("Macros", "3@a", "Play back macro from register a three times"),
+        ],
+        "save": [
+            ("Saving and Exiting", ":w", "Write (save) the file"),
+            ("Saving and Exiting", ":q", "Quit Vim"),
+            ("Saving and Exiting", ":wq", "Write and quit"),
+            ("Saving and Exiting", ":q!", "Quit without saving"),
+            ("Saving and Exiting", ":x", "Write and quit (same as :wq)"),
+        ]
+    }
+
+    # Help text for each section
+    help_text = {
+        "edit": "Editing commands help you modify text efficiently, from inserting to deleting.",
+        "text": "Text objects provide powerful ways to manipulate words, sentences, and more.",
+        "code": "Code navigation commands help you move through code quickly and efficiently.",
+        "copy": "Copy and paste commands for yanking and putting text.",
+        "indent": "Indentation commands to adjust the structure of your code.",
+        "search": "Search and replace commands to find and modify text patterns.",
+        "vmode": "Visual mode commands for selecting and manipulating blocks of text.",
+        "macro": "Macro commands for recording and playing back sequences of actions.",
+        "save": "Saving and exiting commands to write changes and close Vim."
+    }
+
+    # If help flag is set, print help text
+    if help and topic in help_text:
+        console.print(f"[bold blue]{topic.capitalize()} Help:[/bold blue] {help_text[topic]}")
+        return
+
+    # If no specific topic is given, print all sections
+    if topic is None:
+        for section in sections.values():
+            for row in section:
+                table.add_row(*row)
+            table.add_row("", "", "")  # Spacer
+    else:
+        # Print only the specified topic section
+        if topic in sections:
+            for row in sections[topic]:
+                table.add_row(*row)
+            table.add_row("", "", "")  # Spacer
+        else:
+            console.print(f"[red]Invalid topic: {topic}[/red]")
+            return
+
+    # Displaying the table
+    console.print(table)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Vim Practical Cheat Sheet for Programming")
+    parser.add_argument('topic', nargs='?', help='Specific topic to display (edit, text, code, copy, indent, search, vmode, macro, save)')
+    parser.add_argument('-help', action='store_true', help='Show help for the specified topic')
+    args = parser.parse_args()
+
+    print_table(args.topic, args.help)
+

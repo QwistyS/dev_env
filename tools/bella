@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+
+import openai
+import os
+import argparse
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.formatters import TerminalFormatter
+
+def get_openai_response(prompt):
+    # Initialize the OpenAI client with the API key
+    client = openai.OpenAI()
+
+    try:
+        # Create an assistant
+        assistant = client.beta.assistants.create(
+            name="Bella",
+            instructions="You are Bella",
+            tools=[{"type": "code_interpreter"}],
+            model="gpt-4o",
+        )
+
+        # Create a new thread
+        thread = client.beta.threads.create()
+
+        # Send a message to the thread
+        message = client.beta.threads.messages.create(
+            thread_id=thread.id,
+            role="user",
+            content=prompt,
+        )
+
+        # Run the assistant
+        run = client.beta.threads.runs.create_and_poll(
+            thread_id=thread.id,
+            assistant_id=assistant.id,
+        )
+
+        print("Run completed with status: " + run.status)
+
+        if run.status == "completed":
+            messages = client.beta.threads.messages.list(thread_id=thread.id)
+
+            response_messages = []
+            for message in messages:
+                if message.content[0].type == "text":
+                    response_messages.append({"role": message.role, "message": message.content[0].text.value})
+
+            # Clean up by deleting the assistant
+            client.beta.assistants.delete(assistant.id)
+
+            return response_messages
+        else:
+            return [{"role": "system", "message": "The run did not complete successfully."}]
+    except Exception as e:
+        return [{"role": "system", "message": f"An error occurred: {e}"}]
+
+def format_response(response):
+    for msg in response:
+        role = msg['role'].capitalize()
+        message = msg['message']
+
+        # Highlight code blocks
+        if '```' in message:
+            parts = message.split('```')
+            for i, part in enumerate(parts):
+                if i % 2 == 1:  # This part should be code
+                    print(f"{role}:")
+                    print(highlight(part, PythonLexer(), TerminalFormatter()))
+                else:
+                    print(f"{role}: {part}")
+        else:
+            print(f"{role}: {message}")
+
+def main():
+    parser = argparse.ArgumentParser(description="Ask Bella a question.")
+    parser.add_argument('question', type=str, help="The question to ask Bella.")
+    args = parser.parse_args()
+
+    response = get_openai_response(args.question)
+    
+    print("Bella's Response:\n")
+    format_response(response)
+
+if __name__ == "__main__":
+    main()
+
